@@ -16,7 +16,7 @@ elseif(MSVC)
 endif()
 
 # 将我们的目标（可执行文件）及其相关的源文件和头文件添加到项目中
-add_executable(Ticket_System
+add_executable(code
         Database/BPT.hpp
         Database/exceptions.hpp
         Database/MemoryRiver.hpp
