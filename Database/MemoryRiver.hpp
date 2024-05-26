@@ -9,7 +9,7 @@ using std::ifstream;
 using std::ofstream;
 using std::string;
 
-template <class T, int info_len>
+template <class T, int info_len = 0>
 class MemoryRiver
 {
 private:

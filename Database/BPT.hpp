@@ -8,7 +8,7 @@
 #include "exceptions.hpp"
 #include "MemoryRiver.hpp"
 
-template <typename valueType>
+template <typename valueType, int degree = 500>
 class BPT
 {
 public:
@@ -16,7 +16,7 @@ public:
     class KV
     {
     public:
-        char first[64] = {'\0'};
+        char first[24] = {'\0'};
         value second;
 
         KV() : second() {}
@@ -63,7 +63,7 @@ public:
     typedef KV<valueType> KV0; // 重命名
 
 public:
-    static const int Degree = 10; // 最大Degree
+    static const int Degree = degree; // 最大Degree
     static const int info = 3;
     static const int info_len = info * sizeof(int);
     const int SIZE = sizeof(Node);
@@ -169,8 +169,8 @@ public:
     }
 };
 
-template <typename valueType>
-std::pair<int, int> BPT<valueType>::Find_index(Node &node, const KV0 &kv)
+template <typename valueType, int degree>
+std::pair<int, int> BPT<valueType, degree>::Find_index(Node &node, const KV0 &kv)
 {
     int i = 0;
     while (i < node.size && kv > node.kvs[i])
@@ -188,8 +188,8 @@ std::pair<int, int> BPT<valueType>::Find_index(Node &node, const KV0 &kv)
     return Find_index(child, kv);
 }
 
-template <typename valueType>
-std::pair<int, int> BPT<valueType>::Find_pos(Node &node, const KV0 &kv, int mode)
+template <typename valueType, int degree>
+std::pair<int, int> BPT<valueType, degree>::Find_pos(Node &node, const KV0 &kv, int mode)
 {
     // int total;
     // File.get_info(total, 1);
@@ -246,8 +246,8 @@ std::pair<int, int> BPT<valueType>::Find_pos(Node &node, const KV0 &kv, int mode
     return Find_pos(child, kv, mode);
 }
 
-template <typename valueType>
-void BPT<valueType>::showFind(const KV0 &kv)
+template <typename valueType, int degree>
+void BPT<valueType, degree>::showFind(const KV0 &kv)
 {
     int idx_root;
     File.get_info(idx_root, 3);
@@ -287,8 +287,8 @@ void BPT<valueType>::showFind(const KV0 &kv)
     std::cout << "\n";
 }
 
-template <typename valueType>
-void BPT<valueType>::Insert(const KV0 &kv)
+template <typename valueType, int degree>
+void BPT<valueType, degree>::Insert(const KV0 &kv)
 {
     int info[info];
     File.get_all_info(info);
@@ -407,8 +407,8 @@ void BPT<valueType>::Insert(const KV0 &kv)
     }
 }
 
-template <typename valueType>
-void BPT<valueType>::adjust_insert(Node &node, const KV0 &kv, int split_pos)
+template <typename valueType, int degree>
+void BPT<valueType, degree>::adjust_insert(Node &node, const KV0 &kv, int split_pos)
 {
     int k = 0;
     while (k < node.size && kv > node.kvs[k])
@@ -499,8 +499,8 @@ void BPT<valueType>::adjust_insert(Node &node, const KV0 &kv, int split_pos)
     }
 }
 
-template <typename valueType>
-void BPT<valueType>::erase(const KV0 &kv)
+template <typename valueType, int degree>
+void BPT<valueType, degree>::erase(const KV0 &kv)
 {
     int info[info];
     File.get_all_info(info);
@@ -714,8 +714,8 @@ void BPT<valueType>::erase(const KV0 &kv)
     }
 }
 
-template <typename valueType>
-void BPT<valueType>::adjust_erase_replace(Node &node, const KV0 &kv, int prev_pos) // 第三个参数传前面的节点位置
+template <typename valueType, int degree>
+void BPT<valueType, degree>::adjust_erase_replace(Node &node, const KV0 &kv, int prev_pos) // 第三个参数传前面的节点位置
 {
     int k = 0;
     while (k < node.size && node.leaves[k] != prev_pos)
@@ -726,8 +726,8 @@ void BPT<valueType>::adjust_erase_replace(Node &node, const KV0 &kv, int prev_po
     File.write(node, info_len + (node.pos - 1) * SIZE);
 }
 
-template <typename valueType>
-void BPT<valueType>::adjust_erase_delete(Node &node, const KV0 &kv, int prev_pos) // 第三个参数传前面的节点位置
+template <typename valueType, int degree>
+void BPT<valueType, degree>::adjust_erase_delete(Node &node, const KV0 &kv, int prev_pos) // 第三个参数传前面的节点位置
 {
     int info[info];
     File.get_all_info(info);
