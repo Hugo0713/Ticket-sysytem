@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <vector>
 #include <cstring>
 #include <utility>
 #include "exceptions.hpp"
@@ -110,6 +111,13 @@ public:
     Node root;
     MemoryRiver<Node, info> File; // info:总节点数，下一节点编号index, 根节点编号
 
+    BPT() = default;
+
+    void initialise(std::string file_name)
+    {
+        File.initialise(file_name);
+    }
+
     BPT(std::string file_name)
     {
         File.initialise(file_name);
@@ -119,11 +127,52 @@ public:
 
     std::pair<int, int> Find_pos(Node &, const KV0 &, int mode); // 查找键值对位置，返回节点位置与节点中键值对位置, mode: 0无值查找，1有值删除
 
-    void showFind(const KV0 &);
+    std::vector<valueType> Find3(const KV0 &);
+
+    std::vector<valueType> Find3(const std::string &key)
+    {
+        KV0 kv;
+        std::strcpy(kv.first, key.c_str());
+        return Find3(kv);
+    }
+
+    valueType Find2(const KV0 &);
+
+    valueType Find2(const std::string &key)
+    {
+        KV0 kv;
+        std::strcpy(kv.first, key.c_str());
+        return Find2(kv);
+    }
+
+    bool Find1(const KV0 &); // 查找键值对是否存在
+
+    bool Find1(const std::string &key)
+    {
+        KV0 kv;
+        std::strcpy(kv.first, key.c_str());
+        return Find1(kv);
+    }
+
+    void insert(std::string key, valueType value)
+    {
+        KV0 kv;
+        std::strcpy(kv.first, key.c_str());
+        kv.second = value;
+        Insert(kv);
+    }
 
     void Insert(const KV0 &);
 
     void adjust_insert(Node &, const KV0 &, int);
+
+    void erase(std::string key, valueType value)
+    {
+        KV0 kv;
+        std::strcpy(kv.first, key.c_str());
+        kv.second = value;
+        erase(kv);
+    }
 
     void erase(const KV0 &);
 
@@ -247,16 +296,18 @@ std::pair<int, int> BPT<valueType, degree>::Find_pos(Node &node, const KV0 &kv, 
 }
 
 template <typename valueType, int degree>
-void BPT<valueType, degree>::showFind(const KV0 &kv)
+std::vector<valueType> BPT<valueType, degree>::Find3(const KV0 &kv)
 {
+    std::vector<valueType> res;
     int idx_root;
     File.get_info(idx_root, 3);
     File.read(root, info_len + (idx_root - 1) * SIZE);
     std::pair<int, int> idx = Find_pos(root, kv, 0);
     if (idx == std::make_pair(0, 0) || idx == std::make_pair(-1, -1))
     {
-        std::cout << "null\n";
-        return;
+        // std::cout << "null\n";
+        // return;
+        return res;
         // return 0;
     }
 
@@ -270,7 +321,8 @@ void BPT<valueType, degree>::showFind(const KV0 &kv)
     {
         flag = false;
         // std::cout << tmp.kvs[pos].second << " " << pos << " " << tmp.kvs[pos].first << " " << kv.first << "\n";
-        std::cout << tmp.kvs[pos].second << " ";
+        //std::cout << tmp.kvs[pos].second << " ";
+        res.push_back(tmp.kvs[pos].second);
         // return tmp.kvs[pos].second;
         ++pos;
         if (tmp.next != 0 && pos == tmp.size)
@@ -281,10 +333,100 @@ void BPT<valueType, degree>::showFind(const KV0 &kv)
     }
     if (flag)
     {
-        std::cout << "null\n";
-        return;
+        // std::cout << "null\n";
+        // return;
+        return res;
     }
-    std::cout << "\n";
+    //std::cout << "\n";
+}
+
+template <typename valueType, int degree>
+valueType BPT<valueType, degree>::Find2(const KV0 &kv)
+{
+    int idx_root;
+    File.get_info(idx_root, 3);
+    File.read(root, info_len + (idx_root - 1) * SIZE);
+    std::pair<int, int> idx = Find_pos(root, kv, 0);
+    if (idx == std::make_pair(0, 0) || idx == std::make_pair(-1, -1))
+    {
+        // std::cout << "null\n";
+        // return;
+        return -1;
+        // return 0;
+    }
+
+    // std::cout << idx.first << " " << idx.second << "\n";
+    Node tmp;
+    File.read(tmp, info_len + (idx.first - 1) * SIZE);
+    // printnode(tmp);
+    int pos = idx.second;
+    bool flag = true;
+    while (std::strcmp(tmp.kvs[pos].first, kv.first) == 0)
+    {
+        flag = false;
+        // std::cout << tmp.kvs[pos].second << " " << pos << " " << tmp.kvs[pos].first << " " << kv.first << "\n";
+        //std::cout << tmp.kvs[pos].second << " ";
+        return tmp.kvs[pos].second;
+        // return tmp.kvs[pos].second;
+        ++pos;
+        if (tmp.next != 0 && pos == tmp.size)
+        {
+            File.read(tmp, info_len + (tmp.next - 1) * SIZE);
+            pos = 0;
+        }
+    }
+    if (flag)
+    {
+        // std::cout << "null\n";
+        // return;
+        return -1;
+    }
+    return -1;
+    //std::cout << "\n";
+}
+
+template <typename valueType, int degree>
+bool BPT<valueType, degree>::Find1(const KV0 &kv)
+{
+    int idx_root;
+    File.get_info(idx_root, 3);
+    File.read(root, info_len + (idx_root - 1) * SIZE);
+    std::pair<int, int> idx = Find_pos(root, kv, 0);
+    if (idx == std::make_pair(0, 0) || idx == std::make_pair(-1, -1))
+    {
+        // std::cout << "null\n";
+        // return;
+        return false;
+        // return 0;
+    }
+
+    // std::cout << idx.first << " " << idx.second << "\n";
+    Node tmp;
+    File.read(tmp, info_len + (idx.first - 1) * SIZE);
+    // printnode(tmp);
+    int pos = idx.second;
+    bool flag = true;
+    while (std::strcmp(tmp.kvs[pos].first, kv.first) == 0)
+    {
+        flag = false;
+        // std::cout << tmp.kvs[pos].second << " " << pos << " " << tmp.kvs[pos].first << " " << kv.first << "\n";
+        // std::cout << tmp.kvs[pos].second << " ";
+        return true;
+        // return tmp.kvs[pos].second;
+        ++pos;
+        if (tmp.next != 0 && pos == tmp.size)
+        {
+            File.read(tmp, info_len + (tmp.next - 1) * SIZE);
+            pos = 0;
+        }
+    }
+    if (flag)
+    {
+        // std::cout << "null\n";
+        // return;
+        return false;
+    }
+    return false;
 }
 
 template <typename valueType, int degree>
@@ -292,7 +434,6 @@ void BPT<valueType, degree>::Insert(const KV0 &kv)
 {
     int info[info];
     File.get_all_info(info);
-
     if (info[0] == 0)
     {
         info[0] = 1;
@@ -561,7 +702,7 @@ void BPT<valueType, degree>::erase(const KV0 &kv)
                 }
                 else // 向后借不了，并块合并,丢掉next_node
                 {
-                    //std::cout << " 1";
+                    // std::cout << " 1";
 
                     KV0 tmp = next_node.kvs[0]; // 删除父节点的该索引
                     for (int i = 0; i < next_node.size; ++i)
@@ -593,7 +734,7 @@ void BPT<valueType, degree>::erase(const KV0 &kv)
 
                     adjust_erase_delete(father_node, tmp, cur_node.pos);
                 }
-                //File.write_all_info(info);
+                // File.write_all_info(info);
                 return;
             }
             else // 不是兄弟，向前检查,肯定能借或并
@@ -624,7 +765,7 @@ void BPT<valueType, degree>::erase(const KV0 &kv)
                 }
                 else // 向前借不了，并块合并，丢掉cur_node
                 {
-                    //std::cout << " 2";
+                    // std::cout << " 2";
 
                     for (int i = 0; i < cur_node.size; ++i)
                     {
@@ -646,14 +787,14 @@ void BPT<valueType, degree>::erase(const KV0 &kv)
                     adjust_erase_delete(father_node, tmp, prev_node.pos);
                 }
 
-                //File.write_all_info(info);
+                // File.write_all_info(info);
                 return;
             }
         }
         else // 处于末尾，向前检查，必然能借或并
         {
             // if (cur_node.prev != 0 && prev_node.father == cur_node.father) // 应该这时候前兄弟节点必存在
-            //printnode(cur_node);
+            // printnode(cur_node);
             if (cur_node.prev != 0)
             {
                 Node prev_node;
@@ -680,8 +821,8 @@ void BPT<valueType, degree>::erase(const KV0 &kv)
                 }
                 else // 向前借不了，并块合并,丢掉cur_node
                 {
-                    //std::cout << " 3\n";
-                    //printnode(prev_node);
+                    // std::cout << " 3\n";
+                    // printnode(prev_node);
 
                     for (int i = 0; i < cur_node.size; ++i)
                     {
@@ -702,7 +843,7 @@ void BPT<valueType, degree>::erase(const KV0 &kv)
 
                     adjust_erase_delete(father_node, tmp, prev_node.pos); // 似乎tmp没啥用？应该用父节点的索引
                 }
-                //File.write_all_info(info);
+                // File.write_all_info(info);
                 return;
             }
             else // 根节点
@@ -731,7 +872,7 @@ void BPT<valueType, degree>::adjust_erase_delete(Node &node, const KV0 &kv, int 
 {
     int info[info];
     File.get_all_info(info);
-    //std::cout << info[0] << " " << info[1] << " " << info[2] << " " << node.size << " " << prev_pos << "\n";
+    // std::cout << info[0] << " " << info[1] << " " << info[2] << " " << node.size << " " << prev_pos << "\n";
 
     int k = 0; // 找到需要更改的索引位置
     while (k < node.size && node.leaves[k] != prev_pos)
@@ -746,8 +887,8 @@ void BPT<valueType, degree>::adjust_erase_delete(Node &node, const KV0 &kv, int 
     node.kvs[node.size - 1] = KV0();
     node.leaves[node.size] = 0;
     --node.size;
-    
-    //std::cout << node.size << " ";
+
+    // std::cout << node.size << " ";
 
     if (node.size >= (Degree - 1) / 2 + 1)
     {
@@ -758,12 +899,12 @@ void BPT<valueType, degree>::adjust_erase_delete(Node &node, const KV0 &kv, int 
     {
         if (node.father == 0) // 根节点
         {
-            //std::cout << " 4d";
+            // std::cout << " 4d";
             if (node.size == 0)
             {
-                //std::cout << " 5l";
+                // std::cout << " 5l";
                 //--info[0];
-                //File.write_all_info(info);
+                // File.write_all_info(info);
                 File.write_info(prev_pos, 3);
                 Node prev_node;
                 File.read(prev_node, info_len + (prev_pos - 1) * SIZE);

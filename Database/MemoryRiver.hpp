@@ -42,6 +42,7 @@ public:
         {
             file.close();
         }
+        file.close();
     }
 
     void get_info(int &tmp, int n)
@@ -54,7 +55,7 @@ public:
         {
             file.open(file_name);
         }
-        
+
         file.seekg((n - 1) * sizeof(int), std::ios::beg);
         file.read(reinterpret_cast<char *>(&tmp), sizeof(int));
         if (file.tellg() == -1)
@@ -140,7 +141,6 @@ public:
         {
             file.close();
         }
-        //file.close();
     }
 };
 

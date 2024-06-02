@@ -20,5 +20,11 @@ add_executable(code
         Database/BPT.hpp
         Database/exceptions.hpp
         Database/MemoryRiver.hpp
+        Utils/TokenScanner.hpp
+        Utils/tokenScanner.cpp
+        Utils/error.hpp
+        Utils/error.cpp
+        src/User.hpp
+        src/User.cpp
         main.cpp
 )

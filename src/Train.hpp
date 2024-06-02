@@ -1,10 +1,33 @@
-#ifdef TRAIN_HPP
+#ifndef TRAIN_HPP
 #define TRAIN_HPP
 
 #include <string>
+#include <map>
 #include "../Database/BPT.hpp"
 #include "../Database/MemoryRiver.hpp"
-#include "../Utils/Time.hpp"
+
+struct train_ticket // 用于query_ticket和query_transfer
+{
+    char trainID[20] = {'\0'};
+    char date[8] = {'\0'}; // 从该站出发的日期与时间
+    int price;             // 到下一站的价格
+};
+
+struct ticket // 按照时间顺序排列
+{
+    int seat[100];  // 各站之间的票数
+    int price[100]; // 各站之间的价格
+};
+
+struct queue
+{
+    char username[20] = {'\0'};
+    char from[40] = {'\0'};
+    char to[40] = {'\0'};
+    char date[4] = {'\0'};
+    int num;
+    int price;
+};
 
 class Block_train
 {
@@ -96,90 +119,36 @@ public:
     {
         return strcmp(this->trainID, other.trainID) > 0;
     }
-
-    int getStationPos();
-    const char *getTrainID();
-    int getStationNum();
-    void getStations(char stations[][40]);
-    void setSeatNum(int seatNum);
-    int getSeatNum();
-    void getPrices(int *prices);
-    const char *getStartTime();
-    void getTravelTime(int *travelTime);
-    void getStopoverTime(int *stopoverTime);
-    void getSaleDate(int *saleDate);
-    char getType();
 };
-;
 
 class Train
 {
 private:
-    char trainID[20] = {'\0'};
-    Block_train train;
+    static BPT<int, 500> trains;                   // trainID -> int
+    static BPT<queue, 500> train_queue;            // trainID -> queue
+    static BPT<train_ticket, 500> train_ticket;    // stations -> train_ticket
+    static MemoryRiver<Block_train> train_river;   // int -> Block_train
+    static BPT<ticket, 500> train_ticket;          // trainID -> 起始位置
+    static MemoryRiver<ticket> train_ticket_river; // 时间顺序排列每日票数
+    static std::map<std::string, int> train_list;  // release
 
 public:
-    Train() = default;
-    Train(const Train &other)
+    Train()
     {
-        strcpy(this->trainID, other.trainID);
-        this->train = other.train;
-    }
-    Train &operator=(const Train &other)
-    {
-        if (this == &other)
-        {
-            return *this;
-        }
-        strcpy(this->trainID, other.trainID);
-        this->train = other.train;
-        return *this;
-    }
-    bool operator==(const Train &other)
-    {
-        return strcmp(this->trainID, other.trainID) == 0;
-    }
-    bool operator!=(const Train &other)
-    {
-        return strcmp(this->trainID, other.trainID) != 0;
-    }
-    bool operator<(const Train &other)
-    {
-        return strcmp(this->trainID, other.trainID) < 0;
-    }
-    bool operator>(const Train &other)
-    {
-        return strcmp(this->trainID, other.trainID) > 0;
+        trains.initialise("trains");
+        train_queue.initialise("train_queue");
+        train_ticket.initialise("train_ticket");
+        train_river.initialise("train_river");
+        train_ticket.initialise("train_ticket");
+        train_ticket_river.initialise("train_ticket_river");
     }
 
-    bool add_train(const char *trainID, int stationNum, int seatNum, char stations[][40], int *prices, Time startTime, int *travelTime, int *stopoverTime, int *saleDate, char type);
-    bool delete_train(const char *trainID);
-    bool release_train(const char *trainID);
-    bool query_train(const char *trainID, Time startTime);
-    bool query_ticket(const char *trainID, const char *from, const char *to, int type);
-    bool query_transfer(const char *from, const char *to, int type);
+    void add_train(const char *trainID, int stationNum, int seatNum, char stations[][40], int *prices, const char *startTime, int *travelTime, int *stopoverTime, const char *saleDate, char type);
+    void delete_train(const char *trainID);
+    void release_train(const char *trainID);
+    void query_train(const char *trainID, const char *startTime);
+    void query_ticket(const char *trainID, const char *from, const char *to, int type);
+    void query_transfer(const char *from, const char *to, int type);
 };
-
-struct train_ticket // 用于query_ticket和query_transfer
-{
-    char trainID[20] = {'\0'};
-    char date[8] = {'\0'}; // 从该站出发的日期与时间
-    int price;             // 到下一站的价格
-};
-
-struct queue
-{
-    char username[20] = {'\0'};
-    char from[40] = {'\0'};
-    char to[40] = {'\0'};
-    char date[4] = {'\0'};
-    int num;
-    int price;
-};
-
-static BPT<int, 500> trains("trains");                      // trainID -> int
-static BPT<queue, 500> train_queue("train_queue");          // trainID -> queue
-static BPT<train_ticket, 500> train_ticket("train_ticket"); // stations -> train_ticket
-static MemoryRiver<Block_train> train_river("train_river"); // int -> Block_train
 
 #endif

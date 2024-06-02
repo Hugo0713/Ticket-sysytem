@@ -1,99 +1,240 @@
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <cstring>
+#include <vector>
+#include "Database/BPT.hpp"
+#include "Database/MemoryRiver.hpp"
 #include "Utils/Tokenscanner.hpp"
-#include "Utils/Time.hpp"
 #include "src/User.hpp"
-#include "src/Train.hpp"
-
+//#include "src/Train.hpp"
 
 void processLine(const std::string &line)
 {
+    User user;
     TokenScanner scanner(line);
     scanner.ignoreWhitespace();
+    std::string time = scanner.nextToken();
+    //int time_ = std::stoi(time.substr(1, time.size() - 2));
+    std::cout << time << " ";
     std::string command = scanner.nextToken();
-    if (command == "register")
+    if (command == "add_user")
     {
-        std::string username = scanner.nextToken();
-        std::string password = scanner.nextToken();
-        std::string name = scanner.nextToken();
-        std::string mailAddr = scanner.nextToken();
-        int privilege = std::stoi(scanner.nextToken());
-        User::registerUser(username, password, name, mailAddr, privilege);
+        std::string cur_username, username, passward, name, mailAddr = "";
+        int privilege = 0;
+        for (int i = 0; i < 6; ++i)
+        {
+            std::string argument = scanner.nextToken();
+            if (argument[1] == 'c')
+            {
+                cur_username = scanner.nextToken();
+            }
+            else if (argument[1] == 'u')
+            {
+                username = scanner.nextToken();
+            }
+            else if (argument[1] == 'p')
+            {
+                passward = scanner.nextToken();
+            }
+            else if (argument[1] == 'n')
+            {
+                name = scanner.nextToken();
+            }
+            else if (argument[1] == 'm')
+            {
+                mailAddr = scanner.nextToken();
+            }
+            else if (argument[1] == 'g')
+            {
+                privilege = std::stoi(scanner.nextToken());
+            }
+        }
+        //std::cout << cur_username << " " << username << " " << passward << " " << name << " " << mailAddr << " " << privilege << std::endl;
+        user.add_user(cur_username.c_str(), username.c_str(), passward.c_str(), name.c_str(), mailAddr.c_str(), privilege);
     }
     else if (command == "login")
     {
-        std::string username = scanner.nextToken();
-        std::string password = scanner.nextToken();
-        User::login(username, password);
+        std::string username, passward = "";
+        for (int i = 0; i < 2; ++i)
+        {
+            std::string argument = scanner.nextToken();
+            if (argument[1] == 'u')
+            {
+                username = scanner.nextToken();
+            }
+            else if (argument[1] == 'p')
+            {
+                passward = scanner.nextToken();
+            }
+        }
+        //std::cout << username << " " << passward << std::endl;
+        user.login(username.c_str(), passward.c_str());
     }
     else if (command == "logout")
     {
-        User::logout();
+        std::string username = "";
+        scanner.nextToken();
+        username = scanner.nextToken();
+        user.logout(username.c_str());
     }
     else if (command == "query_profile")
     {
-        User::queryProfile();
+        std::string cur_username, username;
+        for (int i = 0; i < 2; ++i)
+        {
+            std::string argument = scanner.nextToken();
+            if (argument[1] == 'c')
+            {
+                cur_username = scanner.nextToken();
+            }
+            else if (argument[1] == 'u')
+            {
+                username = scanner.nextToken();
+            }
+        }
+        //std::cout << cur_username << " " << username << std::endl;
+        user.query_profile(cur_username.c_str(), username.c_str());
     }
     else if (command == "modify_profile")
     {
-        std::string name = scanner.nextToken();
-        std::string mailAddr = scanner.nextToken();
-        User::modifyProfile(name, mailAddr);
-    }
-    else if (command == "modify_privilege")
-    {
-        std::string username = scanner.nextToken();
-        int privilege = std::stoi(scanner.nextToken());
-        User::modifyPrivilege(username, privilege);
+        std::string cur_username, username, name, mailAddr, passward = "";
+        int privilege = -1;
+        
+        for (int i = 0; i < 6; ++i)
+        {
+            std::string argument = scanner.nextToken();
+            if (argument[1] == 'c')
+            {
+                cur_username = scanner.nextToken();
+            }
+            else if (argument[1] == 'u')
+            {
+                username = scanner.nextToken();
+            }
+            else if (argument[1] == 'p')
+            {
+                passward = scanner.nextToken();
+            }
+            else if (argument[1] == 'n')
+            {
+                name = scanner.nextToken();
+            }
+            else if (argument[1] == 'm')
+            {
+                mailAddr = scanner.nextToken();
+            }
+            else if (argument[1] == 'g')
+            {
+                privilege = std::stoi(scanner.nextToken());
+            }
+        }
+        user.modify_profile(cur_username.c_str(), username.c_str(), passward.c_str(), name.c_str(), mailAddr.c_str(), privilege);
     }
     else if (command == "add_train")
     {
-        std::string trainID = scanner.nextToken();
-        int stationNum = std::stoi(scanner.nextToken());
-        std::string stations[100];
-        for (int i = 0; i < stationNum; ++i)
+        std::string trainID, startTime, saleDate = "";
+        std::string stations[100], travelTime[100];
+        int stationNum, seatNum, prices[100], stopoverTime[100];
+        char type;
+        for (int i = 0; i < 10; ++i)
         {
-            stations[i] = scanner.nextToken();
+            std::string argument = scanner.nextToken();
+            if (argument[1] == 'i')
+            {
+                trainID = scanner.nextToken();
+            }
+            else if (argument[1] == 'n')
+            {
+                stationNum = std::stoi(scanner.nextToken());
+            }
+            else if (argument[1] == 'm')
+            {
+                seatNum = std::stoi(scanner.nextToken());
+            }
+            else if (argument[1] == 's')
+            {
+                std::istringstream ss(scanner.nextToken());
+                std::string token;
+                int i = 0;
+                while(std::getline(ss, token, '|'))
+                {
+                    stations[i] = token;
+                    i++;
+                }
+            }
+            else if (argument[1] == 'p')
+            {
+                std::istringstream ss(scanner.nextToken());
+                std::string token;
+                int i = 0;
+                while(std::getline(ss, token, '|'))
+                {
+                    prices[i] = std::stoi(token);
+                    i++;
+                }
+            }
+            else if (argument[1] == 'x')
+            {
+                startTime = scanner.nextToken();
+            }
+            else if (argument[1] == 't')
+            {
+                std::istringstream ss(scanner.nextToken());
+                std::string token;
+                int i = 0;
+                while(std::getline(ss, token, '|'))
+                {
+                    travelTime[i] = token;
+                    i++;
+                }
+            }
+            else if (argument[1] == 'o')
+            {
+                std::istringstream ss(scanner.nextToken());
+                std::string token;
+                int i = 0;
+                while(std::getline(ss, token, '|'))
+                {
+                    stopoverTime[i] = std::stoi(token);
+                    i++;
+                }
+            }
+            else if (argument[1] == 'd')
+            {
+                saleDate= scanner.nextToken();
+            }
+            else if (argument[1] == 'y')
+            {
+                type = scanner.nextToken()[0];
+            }
         }
-        int seatNum = std::stoi(scanner.nextToken());
-        int prices[100];
-        for (int i = 0; i < seatNum; ++i)
-        {
-            prices[i] = std::stoi(scanner.nextToken());
-        }
-        Time startTime(scanner.nextToken());
-        int travelTime[100];
-        for (int i = 0; i < stationNum; ++i)
-        {
-            travelTime[i] = std::stoi(scanner.nextToken());
-        }
-        int stopoverTime[100];
-        for (int i = 0; i < stationNum; ++i)
-        {
-            stopoverTime[i] = std::stoi(scanner.nextToken());
-        }
-        int saleDate[2];
-        saleDate[0] = std::stoi(scanner.nextToken());
-        saleDate[1] = std::stoi(scanner.nextToken());
-        char type = scanner.nextToken()[0];
-        int stationPos = std::stoi(scanner.nextToken());
-        Train::addTrain(trainID, stationNum, stations, seatNum, prices, startTime, travelTime, stopoverTime, saleDate, type, stationPos);
-    }
-    else if (command == "release_train")
-    {
-        std::string trainID = scanner.nextToken();
-        Train::releaseTrain(trainID);
-    }
-    else if (command == "query_train")
-    {
-        std::string trainID = scanner.nextToken();
-        Train::queryTrain(trainID);
     }
     else if (command == "delete_train")
     {
+        scanner.nextToken();
         std::string trainID = scanner.nextToken();
-        Train::deleteTrain(trainID);
+    }
+    else if (command == "release_train")
+    {
+        scanner.nextToken();
+        std::string trainID = scanner.nextToken();
+    }
+    else if (command == "query_train")
+    {
+        std::string trainID, date = "";
+        for (int i = 0; i < 2; ++i)
+        {
+            std::string argument = scanner.nextToken();
+            if (argument[1] == 'i')
+            {
+                trainID = scanner.nextToken();
+            }
+            else if (argument[1] == 'd')
+            {
+                date = scanner.nextToken();
+            }
+        }
     }
     else if (command == "query_ticket")
     {
@@ -101,14 +242,14 @@ void processLine(const std::string &line)
         std::string from = scanner.nextToken();
         std::string to = scanner.nextToken();
         char type = scanner.nextToken()[0];
-        Train::queryTicket(date, from, to, type);
+        // Train::queryTicket(date, from, to, type);
     }
     else if (command == "query_transfer")
     {
         std::string date = scanner.nextToken();
         std::string from = scanner.nextToken();
         std::string to = scanner.nextToken();
-        Train::queryTransfer(date, from, to);
+        // Train::queryTransfer(date, from, to);
     }
     else if (command == "buy_ticket")
     {
@@ -120,23 +261,26 @@ void processLine(const std::string &line)
         strcpy(to, scanner.nextToken().c_str());
         char ticketKind = scanner.nextToken()[0];
         int ticketNum = std::stoi(scanner.nextToken());
-        Train::buyTicket(date, trainID, from, to, ticketKind, ticketNum);
+        // Train::buyTicket(date, trainID, from, to, ticketKind, ticketNum);
     }
     else if (command == "query_order")
     {
         std::string date = scanner.nextToken();
-        Train::queryOrder(date);
+        // Train::queryOrder(date);
     }
     else if (command == "refund_ticket")
     {
         std::string date = scanner.nextToken();
         int ticketNum = std::stoi(scanner.nextToken());
-        Train::refundTicket(date, ticketNum);
+        // Train::refundTicket(date, ticketNum);
     }
     else if (command == "clean")
     {
-        User::clean();
-        Train::clean();
+
+    }
+    else if (command == "exit")
+    {
+        exit(0);
     }
     else
     {
@@ -144,10 +288,10 @@ void processLine(const std::string &line)
     }
 }
 
-
-
 int main()
 {
+    // freopen("testcases/basic_1/1.in", "r", stdin);
+    // freopen("out", "w", stdout);
     while (true)
     {
         try

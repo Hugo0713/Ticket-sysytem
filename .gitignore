@@ -2,3 +2,5 @@
 test/
 testcpp/
 testcases/
+build/
+main
